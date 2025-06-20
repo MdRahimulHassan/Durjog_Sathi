@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "488200792732",
+    "project_id": "durjog-bondhu-463319",
+    "storage_bucket": "durjog-bondhu-463319.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:488200792732:android:92cfdc94be708035afdb59",
+        "android_client_info": {
+          "package_name": "com.example.durjog_sathi"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "488200792732-lv6kil3ov339h0rqeddqfc233ckugnv6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.durjog_sathi",
+            "certificate_hash": "4586963c9b639a11c6168bc79c2b240f543ff20c"
+          }
+        },
+        {
+          "client_id": "488200792732-tiks899o8m8ph824n4t3n42dk12kk2bt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAvH2rD-cGZNRHz8yDrUEHGHwJ-D1lIfPA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "488200792732-tiks899o8m8ph824n4t3n42dk12kk2bt.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "488200792732-8u01k1f3fbudm22ukbqttkjq8klmjups.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.durjogbondhu"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
