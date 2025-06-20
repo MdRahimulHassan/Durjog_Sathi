@@ -9,14 +9,14 @@ plugins {
 
 android {
     namespace = "com.example.durjog_sathi"
-    compileSdk = 34  // or use flutter.compileSdkVersion if you have that variable
+    compileSdk = 35  // or use flutter.compileSdkVersion if you have that variable
 
     ndkVersion = "27.0.12077973" // Optional for Firebase native libs
 
     defaultConfig {
         applicationId = "com.example.durjog_sathi"
         minSdk = 23  // Firebase Auth 23.x+ requires minSdk 23
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
     }
