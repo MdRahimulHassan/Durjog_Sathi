@@ -24,7 +24,7 @@ class _WelcomePageState extends State<WelcomePage> {
             decoration: const BoxDecoration(
               image: DecorationImage(
                 alignment: Alignment.center,
-                image: AssetImage("assets/images/WelcomeScreenBg.png"),
+                image: AssetImage("assets/images/WelcomeScreenBg.jpg"),
                 fit: BoxFit.fill,
               ),
             ),
