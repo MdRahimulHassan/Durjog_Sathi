@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class RescueRequestScreen extends StatefulWidget {
   const RescueRequestScreen({super.key});
@@ -14,6 +15,7 @@ class _RescueRequestScreenState extends State<RescueRequestScreen> {
   LatLng? _userLocation;
   GoogleMapController? _mapController;
   bool _isLoading = true;
+  Set<Marker> _rescueMarkers = {};
 
   @override
   void initState() {
@@ -26,6 +28,7 @@ class _RescueRequestScreenState extends State<RescueRequestScreen> {
 
     if (status.isGranted) {
       await _getCurrentLocation();
+      await _fetchRescueRequests();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Location permission denied")),
@@ -40,9 +43,21 @@ class _RescueRequestScreenState extends State<RescueRequestScreen> {
   Future<void> _getCurrentLocation() async {
     try {
       final position = await Geolocator.getCurrentPosition();
+      final LatLng loc = LatLng(position.latitude, position.longitude);
+
       setState(() {
-        _userLocation = LatLng(position.latitude, position.longitude);
+        _userLocation = loc;
       });
+
+      await FirebaseFirestore.instance.collection('rescue_requests').add({
+        'latitude': loc.latitude,
+        'longitude': loc.longitude,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Rescue request sent")),
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Failed to get location")),
@@ -50,13 +65,52 @@ class _RescueRequestScreenState extends State<RescueRequestScreen> {
     }
   }
 
-  void _deleteRescueRequest() {
+  Future<void> _fetchRescueRequests() async {
+    final snapshot =
+    await FirebaseFirestore.instance.collection('rescue_requests').get();
+
+    final markers = snapshot.docs.map((doc) {
+      final data = doc.data();
+      return Marker(
+        markerId: MarkerId(doc.id),
+        position: LatLng(data['latitude'], data['longitude']),
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+      );
+    }).toSet();
+
     setState(() {
-      _userLocation = null;
+      _rescueMarkers = markers;
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Rescue request deleted")),
-    );
+  }
+
+  void _deleteRescueRequest() async {
+    try {
+      // Find the user's marker and delete it
+      final snapshot = await FirebaseFirestore.instance
+          .collection('rescue_requests')
+          .where('latitude', isEqualTo: _userLocation?.latitude)
+          .where('longitude', isEqualTo: _userLocation?.longitude)
+          .get();
+
+      for (var doc in snapshot.docs) {
+        await doc.reference.delete();
+      }
+
+      setState(() {
+        _userLocation = null;
+        _rescueMarkers.removeWhere((marker) =>
+        marker.position.latitude == _userLocation?.latitude &&
+            marker.position.longitude == _userLocation?.longitude);
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Rescue request deleted")),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error deleting: $e")),
+      );
+    }
   }
 
   @override
@@ -73,13 +127,7 @@ class _RescueRequestScreenState extends State<RescueRequestScreen> {
           target: _userLocation!,
           zoom: 15,
         ),
-        markers: {
-          Marker(
-            markerId: const MarkerId("rescue_location"),
-            position: _userLocation!,
-            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-          ),
-        },
+        markers: _rescueMarkers,
         myLocationEnabled: true,
         myLocationButtonEnabled: true,
       ),
