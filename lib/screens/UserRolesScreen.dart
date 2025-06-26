@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'HomeScreen.dart' as home;
+import 'RescuersScreen.dart';
+//import 'rescuersScreen.dart'; // ✅ Import the RescuersScreen
 
 class UserRolesScreen extends StatefulWidget {
   const UserRolesScreen({super.key});
@@ -93,6 +95,12 @@ class _UserRolesScreenState extends State<UserRolesScreen> {
                                   builder: (context) => const home.HomeScreen(),
                                 ),
                               );
+                            } else if (role['name'] == "Rescuers") {
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(
+                                  builder: (context) => const RescuersScreen(),
+                                ),
+                              );
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
@@ -152,7 +160,7 @@ class _RoleCardState extends State<RoleCard> with SingleTickerProviderStateMixin
 
     _animation = Tween<Offset>(
       begin: const Offset(0, 0),
-      end: const Offset(0, -0.03), // Subtle movement
+      end: const Offset(0, -0.03),
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
