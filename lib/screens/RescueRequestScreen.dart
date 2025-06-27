@@ -3,6 +3,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class RescueRequestScreen extends StatefulWidget {
   const RescueRequestScreen({super.key});
@@ -49,9 +50,13 @@ class _RescueRequestScreenState extends State<RescueRequestScreen> {
         _userLocation = loc;
       });
 
+      final user = FirebaseAuth.instance.currentUser;
+
       await FirebaseFirestore.instance.collection('rescue_requests').add({
+        'uid': user?.uid,
         'latitude': loc.latitude,
         'longitude': loc.longitude,
+        'status': 'pending',
         'timestamp': FieldValue.serverTimestamp(),
       });
 
@@ -85,11 +90,13 @@ class _RescueRequestScreenState extends State<RescueRequestScreen> {
 
   void _deleteRescueRequest() async {
     try {
-      // Find the user's marker and delete it
+      final lat = _userLocation?.latitude;
+      final lng = _userLocation?.longitude;
+
       final snapshot = await FirebaseFirestore.instance
           .collection('rescue_requests')
-          .where('latitude', isEqualTo: _userLocation?.latitude)
-          .where('longitude', isEqualTo: _userLocation?.longitude)
+          .where('latitude', isEqualTo: lat)
+          .where('longitude', isEqualTo: lng)
           .get();
 
       for (var doc in snapshot.docs) {
@@ -99,8 +106,8 @@ class _RescueRequestScreenState extends State<RescueRequestScreen> {
       setState(() {
         _userLocation = null;
         _rescueMarkers.removeWhere((marker) =>
-        marker.position.latitude == _userLocation?.latitude &&
-            marker.position.longitude == _userLocation?.longitude);
+        marker.position.latitude == lat &&
+            marker.position.longitude == lng);
       });
 
       ScaffoldMessenger.of(context).showSnackBar(

@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'HomeScreen.dart' as home;
 import 'RescuersScreen.dart';
@@ -39,73 +40,80 @@ class UserRolesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBody: true, // 👈 Ensures background reaches the bottom
+      extendBody: true,
       body: Stack(
         children: [
-          // 🔲 Background image
+          // Background image
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/role.jpg',
+              fit: BoxFit.cover,
+            ),
+          ),
+
+          // Semi-transparent overlay
           Container(
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('assets/images/role.jpg'),
-                fit: BoxFit.cover,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.black.withOpacity(0.6), Colors.black.withOpacity(0.4)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
               ),
             ),
           ),
 
-          // 🔲 Color overlay
-          Container(
-            color: Colors.black.withOpacity(0.65),
-          ),
-
-          // 🔲 Content
+          // Main content
           SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8.0),
-                    child: Text(
-                      "Select Your Role",
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+                  const Text(
+                    "Select Your Role",
+                    style: TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      shadows: [Shadow(blurRadius: 10, color: Colors.black)],
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  ...roles.map((role) => RoleCard(
-                    roleName: role['name']!,
-                    tagline: role['tagline']!,
-                    icon: role['icon']!,
-                    color: role['color']!,
-                    emoji: role['emoji']!,
-                    onTap: () {
-                      if (role['name'] == "Affected Persons") {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const home.HomeScreen()),
+                  const SizedBox(height: 20),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: roles.length,
+                      itemBuilder: (context, index) {
+                        final role = roles[index];
+                        return RoleCard(
+                          roleName: role['name']!,
+                          tagline: role['tagline']!,
+                          icon: role['icon']!,
+                          color: role['color']!,
+                          emoji: role['emoji']!,
+                          onTap: () {
+                            if (role['name'] == "Affected Persons") {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(builder: (context) => const home.HomeScreen()),
+                              );
+                            } else if (role['name'] == "Rescuers") {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(builder: (context) => const RescuersScreen()),
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text("${role['name']} feature coming soon!"),
+                                  backgroundColor: Colors.black87,
+                                ),
+                              );
+                            }
+                          },
                         );
-                      } else if (role['name'] == "Rescuers") {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const RescuersScreen()),
-                        );
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text("${role['name']} feature coming soon!"),
-                            backgroundColor: Colors.black87,
-                          ),
-                        );
-                      }
-                    },
-                  )),
-                  const SizedBox(height: 20), // Padding to ensure last card doesn't stick to bottom
+                      },
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -116,7 +124,7 @@ class UserRolesScreen extends StatelessWidget {
   }
 }
 
-class RoleCard extends StatelessWidget {
+class RoleCard extends StatefulWidget {
   final String roleName;
   final String tagline;
   final IconData icon;
@@ -135,48 +143,96 @@ class RoleCard extends StatelessWidget {
   });
 
   @override
+  State<RoleCard> createState() => _RoleCardState();
+}
+
+class _RoleCardState extends State<RoleCard> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 150),
+      lowerBound: 0.0,
+      upperBound: 0.05,
+    );
+    _scale = Tween<double>(begin: 1.0, end: 0.95).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+    );
+  }
+
+  void _onTapDown(_) => _controller.forward();
+  void _onTapUp(_) => _controller.reverse();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Card(
-      color: color.withOpacity(0.95),
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      elevation: 6,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
-          child: Row(
-            children: [
-              CircleAvatar(
-                backgroundColor: Colors.white,
-                radius: 24,
-                child: Icon(icon, color: color, size: 26),
+    return GestureDetector(
+      onTap: widget.onTap,
+      onTapDown: _onTapDown,
+      onTapUp: _onTapUp,
+      onTapCancel: _controller.reverse,
+      child: AnimatedBuilder(
+        animation: _scale,
+        builder: (context, child) {
+          return Transform.scale(
+            scale: _scale.value,
+            child: child,
+          );
+        },
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.white.withOpacity(0.2)),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(emoji, style: const TextStyle(fontSize: 20)),
-                    const SizedBox(height: 4),
-                    Text(
-                      roleName,
-                      style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 30,
+                    backgroundColor: Colors.white,
+                    child: Icon(widget.icon, size: 28, color: widget.color),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(widget.emoji, style: const TextStyle(fontSize: 24)),
+                        const SizedBox(height: 4),
+                        Text(
+                          widget.roleName,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        Text(
+                          widget.tagline,
+                          style: const TextStyle(color: Colors.white70),
+                        ),
+                      ],
                     ),
-                    Text(
-                      tagline,
-                      style: const TextStyle(color: Colors.white70),
-                    ),
-                  ],
-                ),
+                  ),
+                  const Icon(Icons.arrow_forward_ios, size: 18, color: Colors.white54),
+                ],
               ),
-              const Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 18),
-            ],
+            ),
           ),
         ),
       ),

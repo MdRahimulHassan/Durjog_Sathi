@@ -17,11 +17,10 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
-  // Screens for each bottom nav item
   final List<Widget> _screens = [
-    const HomeContent(),         // Grid-based Home screen
-    const StatisticsScreen(),    // Statistics placeholder
-    const ProfileScreen(),       // Profile placeholder
+    const HomeContent(),
+    const StatisticsScreen(),
+    const ProfileScreen(),
   ];
 
   void _onTabTapped(int index) {
@@ -31,17 +30,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      extendBodyBehindAppBar: true,
 
-      // ✅ AppBar shown on every tab
-      appBar: AppBar(
-        title: const Text('Durjog Bondhu', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.black,
-        automaticallyImplyLeading: true,
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
-
-      // ✅ Drawer shown on every tab
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
@@ -77,12 +67,46 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
 
-      // ✅ Active screen shown based on selected index
-      body: _screens[_selectedIndex],
+      body: Stack(
+        children: [
+          // 🔲 Background Image
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/home.jpg',
+              fit: BoxFit.cover,
+            ),
+          ),
 
-      // ✅ Bottom Navigation Bar (stays always)
+          // 🔲 Unified dark overlay
+          Container(
+            color: Colors.black.withOpacity(0.4), // Match AppBar's dark tone
+          ),
+
+          // 🔲 Foreground Content with SafeArea
+          SafeArea(
+            child: Column(
+              children: [
+                // ✅ AppBar
+                AppBar(
+                  title: const Text('Durjog Bondhu', style: TextStyle(color: Colors.white)),
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  automaticallyImplyLeading: true,
+                  iconTheme: const IconThemeData(color: Colors.white),
+                ),
+
+                // ✅ Dynamic Page Content
+                Expanded(
+                  child: _screens[_selectedIndex],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.grey[900],
+        backgroundColor: Colors.grey[900]?.withOpacity(0.85),
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.orangeAccent,
         unselectedItemColor: Colors.grey,
