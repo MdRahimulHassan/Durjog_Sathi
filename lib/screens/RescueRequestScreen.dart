@@ -4,6 +4,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 
 class RescueRequestScreen extends StatefulWidget {
   const RescueRequestScreen({super.key});
@@ -17,6 +18,9 @@ class _RescueRequestScreenState extends State<RescueRequestScreen> {
   GoogleMapController? _mapController;
   bool _isLoading = true;
   Set<Marker> _rescueMarkers = {};
+  List<LatLng> _polylineCoordinates = [];
+  final PolylinePoints _polylinePoints = PolylinePoints();
+  final String _googleApiKey = 'AIzaSyCKhvSTYJrLl98jq-p8nB2pAae2gE2uuoY'; // Replace with your real key
 
   @override
   void initState() {
@@ -29,94 +33,164 @@ class _RescueRequestScreenState extends State<RescueRequestScreen> {
 
     if (status.isGranted) {
       await _getCurrentLocation();
-      await _fetchRescueRequests();
+      await _handleRescueRequest();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Location permission denied")),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Location permission denied")),
+        );
+      }
     }
 
-    setState(() {
-      _isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   Future<void> _getCurrentLocation() async {
     try {
       final position = await Geolocator.getCurrentPosition();
       final LatLng loc = LatLng(position.latitude, position.longitude);
+      if (mounted) {
+        setState(() {
+          _userLocation = loc;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Failed to get location")),
+        );
+      }
+    }
+  }
 
-      setState(() {
-        _userLocation = loc;
-      });
+  Future<void> _handleRescueRequest() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null || _userLocation == null) return;
 
-      final user = FirebaseAuth.instance.currentUser;
+    final docRef = FirebaseFirestore.instance.collection('rescue_requests').doc(user.uid);
+    final docSnapshot = await docRef.get();
 
-      await FirebaseFirestore.instance.collection('rescue_requests').add({
-        'uid': user?.uid,
-        'latitude': loc.latitude,
-        'longitude': loc.longitude,
+    DocumentSnapshot requestDoc;
+
+    if (!docSnapshot.exists) {
+      // No existing request, create a new one
+      await docRef.set({
+        'uid': user.uid,
+        'latitude': _userLocation!.latitude,
+        'longitude': _userLocation!.longitude,
         'status': 'pending',
         'timestamp': FieldValue.serverTimestamp(),
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Rescue request sent")),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Failed to get location")),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Rescue request sent")),
+        );
+      }
+
+      requestDoc = await docRef.get();
+    } else {
+      requestDoc = docSnapshot;
     }
+
+    // Show user location marker
+    _rescueMarkers = {
+      Marker(
+        markerId: const MarkerId('user'),
+        position: _userLocation!,
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+        infoWindow: const InfoWindow(title: 'You'),
+      ),
+    };
+
+    final requestData = requestDoc.data() as Map<String, dynamic>;
+
+    if (requestData['status'] == 'in_progress' && requestData.containsKey('rescuerId')) {
+      final rescuerId = requestData['rescuerId'];
+
+      final rescuerDoc = await FirebaseFirestore.instance
+          .collection('rescuers')
+          .doc(rescuerId)
+          .get();
+
+      if (rescuerDoc.exists) {
+        final rescuerData = rescuerDoc.data()!;
+        final LatLng rescuerLocation = LatLng(
+          rescuerData['latitude'],
+          rescuerData['longitude'],
+        );
+
+        _rescueMarkers.add(
+          Marker(
+            markerId: MarkerId(rescuerId),
+            position: rescuerLocation,
+            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+            infoWindow: const InfoWindow(title: 'Rescuer'),
+          ),
+        );
+
+        await _drawRoute(_userLocation!, rescuerLocation);
+      }
+    }
+
+    if (mounted) setState(() {});
   }
 
-  Future<void> _fetchRescueRequests() async {
-    final snapshot =
-    await FirebaseFirestore.instance.collection('rescue_requests').get();
+  Future<void> _drawRoute(LatLng from, LatLng to) async {
+    final result = await _polylinePoints.getRouteBetweenCoordinates(
+      googleApiKey: _googleApiKey,
+      request: PolylineRequest(
+        origin: PointLatLng(from.latitude, from.longitude),
+        destination: PointLatLng(to.latitude, to.longitude),
+        mode: TravelMode.driving,
+      ),
+    );
 
-    final markers = snapshot.docs.map((doc) {
-      final data = doc.data();
-      return Marker(
-        markerId: MarkerId(doc.id),
-        position: LatLng(data['latitude'], data['longitude']),
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-      );
-    }).toSet();
-
-    setState(() {
-      _rescueMarkers = markers;
-    });
+    if (result.points.isNotEmpty) {
+      if (mounted) {
+        setState(() {
+          _polylineCoordinates = result.points
+              .map((point) => LatLng(point.latitude, point.longitude))
+              .toList();
+        });
+      }
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Failed to draw route")),
+        );
+      }
+    }
   }
 
   void _deleteRescueRequest() async {
     try {
-      final lat = _userLocation?.latitude;
-      final lng = _userLocation?.longitude;
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
 
-      final snapshot = await FirebaseFirestore.instance
-          .collection('rescue_requests')
-          .where('latitude', isEqualTo: lat)
-          .where('longitude', isEqualTo: lng)
-          .get();
+      await FirebaseFirestore.instance.collection('rescue_requests').doc(user.uid).delete();
 
-      for (var doc in snapshot.docs) {
-        await doc.reference.delete();
+      if (mounted) {
+        setState(() {
+          _userLocation = null;
+          _rescueMarkers.clear();
+          _polylineCoordinates.clear();
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Rescue request deleted")),
+        );
       }
-
-      setState(() {
-        _userLocation = null;
-        _rescueMarkers.removeWhere((marker) =>
-        marker.position.latitude == lat &&
-            marker.position.longitude == lng);
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Rescue request deleted")),
-      );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error deleting: $e")),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error deleting: $e")),
+        );
+      }
     }
   }
 
@@ -137,6 +211,16 @@ class _RescueRequestScreenState extends State<RescueRequestScreen> {
         markers: _rescueMarkers,
         myLocationEnabled: true,
         myLocationButtonEnabled: true,
+        polylines: _polylineCoordinates.isNotEmpty
+            ? {
+          Polyline(
+            polylineId: const PolylineId("route"),
+            color: Colors.blue,
+            width: 6,
+            points: _polylineCoordinates,
+          ),
+        }
+            : {},
       ),
       floatingActionButton: _userLocation != null && !_isLoading
           ? SizedBox(

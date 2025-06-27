@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'LoginPage.dart';
-
-// Screens
 import 'HomeContent.dart';
 import 'StatisticsScreen.dart';
 import 'ProfileScreen.dart';
@@ -31,7 +29,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
@@ -66,27 +63,18 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-
       body: Stack(
         children: [
-          // 🔲 Background Image
           Positioned.fill(
             child: Image.asset(
               'assets/images/home.jpg',
               fit: BoxFit.cover,
             ),
           ),
-
-          // 🔲 Unified dark overlay
-          Container(
-            color: Colors.black.withOpacity(0.4), // Match AppBar's dark tone
-          ),
-
-          // 🔲 Foreground Content with SafeArea
+          Container(color: Colors.black.withOpacity(0.4)),
           SafeArea(
             child: Column(
               children: [
-                // ✅ AppBar
                 AppBar(
                   title: const Text('Durjog Bondhu', style: TextStyle(color: Colors.white)),
                   backgroundColor: Colors.transparent,
@@ -94,8 +82,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   automaticallyImplyLeading: true,
                   iconTheme: const IconThemeData(color: Colors.white),
                 ),
-
-                // ✅ Dynamic Page Content
                 Expanded(
                   child: _screens[_selectedIndex],
                 ),
@@ -104,7 +90,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Colors.grey[900]?.withOpacity(0.85),
         currentIndex: _selectedIndex,

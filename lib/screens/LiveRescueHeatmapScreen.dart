@@ -17,11 +17,13 @@ class _LiveRescueHeatmapScreenState extends State<LiveRescueHeatmapScreen> {
   Set<Marker> _markers = {};
   List<LatLng> _polylineCoords = [];
   final PolylinePoints _polylinePoints = PolylinePoints();
-  final String _googleApiKey = 'YOUR_GOOGLE_API_KEY'; // Replace with real key
+  final String _googleApiKey = 'AIzaSyCKhvSTYJrLl98jq-p8nB2pAae2gE2uuoY'; // Replace with your actual Google Maps API key
 
   StreamSubscription<DocumentSnapshot>? rescuerStream;
   LatLng? rescuerLatLng;
   LatLng? affectedLatLng;
+
+  bool _loading = true;
 
   @override
   void initState() {
@@ -39,18 +41,66 @@ class _LiveRescueHeatmapScreenState extends State<LiveRescueHeatmapScreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
-    final assignmentSnap = await FirebaseFirestore.instance
-        .collection('rescue_assignments')
-        .where('affectedPersonId', isEqualTo: user.uid)
-        .where('status', isEqualTo: 'in_progress')
+    // Fetch rescue request for this user where status = in_progress
+    final requestDoc = await FirebaseFirestore.instance
+        .collection('rescue_requests')
+        .doc(user.uid)
         .get();
 
-    if (assignmentSnap.docs.isEmpty) return;
+    if (!requestDoc.exists) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("No active rescue request found.")),
+        );
+      }
+      setState(() => _loading = false);
+      return;
+    }
 
-    final assignment = assignmentSnap.docs.first.data();
-    final rescuerId = assignment['rescuerId'];
+    final request = requestDoc.data();
+    if (request == null || request['status'] != 'in_progress') {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Rescue request not in progress.")),
+        );
+      }
+      setState(() => _loading = false);
+      return;
+    }
 
-    // Listen for rescuer location updates
+    final rescuerId = request['rescuerId'];
+    if (rescuerId == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("No rescuer assigned yet.")),
+        );
+      }
+      setState(() => _loading = false);
+      return;
+    }
+
+    // Load affected person's location once
+    final affectedDoc = await FirebaseFirestore.instance
+        .collection('live_locations')
+        .doc(user.uid)
+        .get();
+
+    if (!affectedDoc.exists) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Your location not found.")),
+        );
+      }
+      setState(() => _loading = false);
+      return;
+    }
+
+    affectedLatLng = LatLng(
+      affectedDoc['latitude'],
+      affectedDoc['longitude'],
+    );
+
+    // Listen to rescuer location live updates
     rescuerStream = FirebaseFirestore.instance
         .collection('live_locations')
         .doc(rescuerId)
@@ -63,23 +113,8 @@ class _LiveRescueHeatmapScreenState extends State<LiveRescueHeatmapScreen> {
         rescuerDoc['longitude'],
       );
 
-      // Load affected location once
-      if (affectedLatLng == null) {
-        final affectedDoc = await FirebaseFirestore.instance
-            .collection('live_locations')
-            .doc(user.uid)
-            .get();
-
-        if (!affectedDoc.exists) return;
-
-        affectedLatLng = LatLng(
-          affectedDoc['latitude'],
-          affectedDoc['longitude'],
-        );
-      }
-
-      // Update route and markers
       await _drawRoute(rescuerPos, affectedLatLng!);
+      setState(() => _loading = false);
     });
   }
 
@@ -124,37 +159,29 @@ class _LiveRescueHeatmapScreenState extends State<LiveRescueHeatmapScreen> {
   void _moveCamera(LatLng rescuer, LatLng affected) {
     final bounds = LatLngBounds(
       southwest: LatLng(
-        (rescuer.latitude < affected.latitude)
-            ? rescuer.latitude
-            : affected.latitude,
-        (rescuer.longitude < affected.longitude)
-            ? rescuer.longitude
-            : affected.longitude,
+        rescuer.latitude < affected.latitude ? rescuer.latitude : affected.latitude,
+        rescuer.longitude < affected.longitude ? rescuer.longitude : affected.longitude,
       ),
       northeast: LatLng(
-        (rescuer.latitude > affected.latitude)
-            ? rescuer.latitude
-            : affected.latitude,
-        (rescuer.longitude > affected.longitude)
-            ? rescuer.longitude
-            : affected.longitude,
+        rescuer.latitude > affected.latitude ? rescuer.latitude : affected.latitude,
+        rescuer.longitude > affected.longitude ? rescuer.longitude : affected.longitude,
       ),
     );
 
-    _mapController?.animateCamera(
-      CameraUpdate.newLatLngBounds(bounds, 50),
-    );
+    _mapController?.animateCamera(CameraUpdate.newLatLngBounds(bounds, 80));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Live Rescue Tracker")),
-      body: GoogleMap(
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : GoogleMap(
         onMapCreated: (controller) => _mapController = controller,
-        initialCameraPosition: const CameraPosition(
-          target: LatLng(23.777176, 90.399452),
-          zoom: 12,
+        initialCameraPosition: CameraPosition(
+          target: affectedLatLng ?? const LatLng(23.777176, 90.399452), // Dhaka default
+          zoom: 13,
         ),
         markers: _markers,
         polylines: {
@@ -164,7 +191,7 @@ class _LiveRescueHeatmapScreenState extends State<LiveRescueHeatmapScreen> {
               points: _polylineCoords,
               color: Colors.blue,
               width: 6,
-            )
+            ),
         },
         myLocationEnabled: true,
         myLocationButtonEnabled: true,

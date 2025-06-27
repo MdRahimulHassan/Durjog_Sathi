@@ -89,5 +89,3 @@ class MapAndRescueTrackerScreen extends StatelessWidget {
   }
 }
 
-class LiveRescueHeatmapScreen {
-}
