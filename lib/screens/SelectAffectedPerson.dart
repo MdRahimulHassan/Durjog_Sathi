@@ -24,7 +24,7 @@ class _SelectAffectedPersonState extends State<SelectAffectedPerson> {
   List<LatLng> _polylineCoordinates = [];
   final PolylinePoints _polylinePoints = PolylinePoints();
 
-  // TODO: Replace with your actual Google Maps Directions API key
+
   final String _googleApiKey = 'AIzaSyCKhvSTYJrLl98jq-p8nB2pAae2gE2uuoY';
 
   @override
