@@ -8,7 +8,7 @@ class OfflineCommunicationScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Offline Communication')),
       body: Padding(
-        padding: const EdgeInsets.all(35.0),
+        padding: const EdgeInsets.all(20.0),
         child: GridView.count(
           crossAxisCount: 2,
           crossAxisSpacing: 16,

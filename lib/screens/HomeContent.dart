@@ -1,4 +1,4 @@
-import 'dart:ui';
+/*import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 
@@ -34,6 +34,13 @@ class HomeContent extends StatelessWidget {
     },
   ];
 
+  final List<String> latestAlerts = const [
+    "Severe weather warning in your area. Stay indoors.",
+    "Roadblock reported near Main St., avoid if possible.",
+    "Nearby shelter open for emergency accommodation.",
+    "Medical supplies running low at local clinics. Donate if possible.",
+  ];
+
   List<Widget> _buildSafetySlides(double screenHeight) {
     return safetyMessages.map((msg) {
       return Container(
@@ -42,7 +49,7 @@ class HomeContent extends StatelessWidget {
         height: screenHeight * 0.16,
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [Color(0xFF800080), Color(0xFFD147BD)],
+            colors: [Color(0xFF80CBC4), Color(0xFF4DB6AC)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -140,68 +147,150 @@ class HomeContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final double screenHeight = MediaQuery.of(context).size.height;
 
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: SingleChildScrollView(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Emergency Safety App'),
+        backgroundColor: const Color(0xFF00796B), // Soft teal
+        elevation: 2,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Safety Messages Carousel
-            CarouselSlider(
-              options: CarouselOptions(
-                height: screenHeight * 0.18,
-                autoPlay: true,
-                autoPlayInterval: const Duration(seconds: 5),
-                enlargeCenterPage: true,
-                viewportFraction: 0.98, // Wider width across screen
-              ),
-              items: _buildSafetySlides(screenHeight),
-            ),
-            const SizedBox(height: 20),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Safety Messages Carousel
+                    CarouselSlider(
+                      options: CarouselOptions(
+                        height: screenHeight * 0.18,
+                        autoPlay: true,
+                        autoPlayInterval: const Duration(seconds: 5),
+                        enlargeCenterPage: true,
+                        viewportFraction: 0.98,
+                      ),
+                      items: _buildSafetySlides(screenHeight),
+                    ),
+                    const SizedBox(height: 20),
 
-            // Feature Cards Carousel
-            CarouselSlider(
-              options: CarouselOptions(
-                height: 190,
-                enableInfiniteScroll: false,
-                viewportFraction: 0.65,
-                enlargeCenterPage: true,
-                padEnds: false,
-                scrollPhysics: const BouncingScrollPhysics(),
-              ),
-              items: featureCards.map((card) {
-                return Builder(builder: (context) => card);
-              }).toList(),
-            ),
-            const SizedBox(height: 30),
+                    // Feature Cards Carousel
+                    CarouselSlider(
+                      options: CarouselOptions(
+                        height: 200,
+                        enableInfiniteScroll: false,
+                        viewportFraction: 0.65,
+                        enlargeCenterPage: true,
+                        padEnds: false,
+                        scrollPhysics: const BouncingScrollPhysics(),
+                      ),
+                      items: featureCards.map((card) {
+                        return Builder(
+                          builder: (context) => SizedBox(
+                            width: 220,
+                            height: 170,
+                            child: card,
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 30),
 
-            // First Aid Tip Shortcut
-            GestureDetector(
-              onTap: () {
-                Navigator.pushNamed(context, '/FirstAidTips');
-              },
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.teal.withOpacity(0.8),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: const [
-                    Icon(Icons.local_hospital, size: 40, color: Colors.white),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        "Emergency Health Article: First Aid Tips",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                    // Latest Alerts Section
+                    Text(
+                      "Latest Alerts",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey.shade800,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ...latestAlerts.map((alert) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.teal.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.teal.shade200),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.warning_amber_rounded,
+                              color: Colors.teal,
+                              size: 28,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                alert,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )),
+
+                    const SizedBox(height: 30),
+
+                    // First Aid Tip Shortcut
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(context, '/FirstAidTips');
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFB2DFDB).withOpacity(0.6),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: const [
+                            Icon(Icons.local_hospital, size: 40, color: Color(0xFF004D40)),
+                            SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                "Emergency Health Article: First Aid Tips",
+                                style: TextStyle(
+                                  color: Color(0xFF004D40),
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            Icon(Icons.arrow_forward_ios, color: Color(0xFF004D40), size: 18),
+                          ],
                         ),
                       ),
                     ),
-                    Icon(Icons.arrow_forward_ios, color: Colors.white, size: 18),
+                    const SizedBox(height: 20),
                   ],
+                ),
+              ),
+            ),
+
+            // Footer
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade200,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Center(
+                child: Text(
+                  '© 2025 Emergency Safety App - All rights reserved',
+                  style: TextStyle(
+                    color: Colors.black54,
+                    fontSize: 12,
+                  ),
                 ),
               ),
             ),
@@ -230,40 +319,37 @@ class FeatureCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(18),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Card(
-          color: Colors.white.withOpacity(0.15),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-          elevation: 8,
-          child: InkWell(
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => target),
-            ),
-            borderRadius: BorderRadius.circular(18),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 12),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(icon, size: 40, color: color),
-                  const SizedBox(height: 12),
-                  Flexible(
-                    child: Text(
-                      label,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+      child: Card(
+        color: color.withOpacity(0.95), // Solid soft color background
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        elevation: 6,
+        child: InkWell(
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => target),
+          ),
+          borderRadius: BorderRadius.circular(18),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 12),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, size: 40, color: Colors.white),
+                const SizedBox(height: 12),
+                Flexible(
+                  child: Text(
+                    label,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -271,3 +357,4 @@ class FeatureCard extends StatelessWidget {
     );
   }
 }
+*/

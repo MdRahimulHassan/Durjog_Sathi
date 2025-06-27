@@ -16,7 +16,7 @@ class MapAndRescueTrackerScreen extends StatelessWidget {
       {
         'icon': Icons.fireplace,
         'label': 'Live Rescue Heatmap',
-        'screen':  LiveRescueHeatmapScreen()
+        'screen': LiveRescueHeatmapScreen()
       },
       {
         'icon': Icons.warning,
@@ -46,11 +46,11 @@ class MapAndRescueTrackerScreen extends StatelessWidget {
         backgroundColor: Colors.orangeAccent,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(35.0),
+        padding: const EdgeInsets.all(24.0),
         child: GridView.count(
           crossAxisCount: 2,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
+          crossAxisSpacing: 20,
+          mainAxisSpacing: 20,
           children: mapFeatures.map((feature) {
             return GestureDetector(
               onTap: () {
@@ -61,21 +61,28 @@ class MapAndRescueTrackerScreen extends StatelessWidget {
               },
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.orange[50],
-                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.deepOrange.shade100, // Darker card color
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.deepOrange.shade200.withOpacity(0.3),
+                      blurRadius: 6,
+                      offset: const Offset(2, 4),
+                    ),
+                  ],
                 ),
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(16),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(feature['icon'], size: 36, color: Colors.deepOrange),
-                    const SizedBox(height: 10),
+                    Icon(feature['icon'], size: 40, color: Colors.deepOrange.shade700),
+                    const SizedBox(height: 12),
                     Text(
                       feature['label'],
                       textAlign: TextAlign.center,
                       style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
                       ),
                     ),
                   ],
@@ -88,4 +95,3 @@ class MapAndRescueTrackerScreen extends StatelessWidget {
     );
   }
 }
-
