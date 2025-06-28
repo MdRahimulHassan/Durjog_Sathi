@@ -1,5 +1,9 @@
 import 'dart:convert';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
@@ -17,13 +21,19 @@ class _NearbyHospitalsScreenState extends State<NearbyHospitalsScreen> {
   GoogleMapController? _mapController;
   bool _isLoading = true;
   Set<Marker> _markers = {};
+  BitmapDescriptor? _hospitalIcon;
 
-  final String _googleApiKey = 'AIzaSyCKhvSTYJrLl98jq-p8nB2pAae2gE2uuoY';
+  final String _googleApiKey = 'AIzaSyCKhvSTYJrLl98jq-p8nB2pAae2gE2uuoY'; // Replace with your API key
 
   @override
   void initState() {
     super.initState();
-    _initLocationFlow();
+    _initCustomAndLocation();
+  }
+
+  Future<void> _initCustomAndLocation() async {
+    _hospitalIcon = await createCustomMarkerBitmap();
+    await _initLocationFlow();
   }
 
   Future<void> _initLocationFlow() async {
@@ -49,11 +59,10 @@ class _NearbyHospitalsScreenState extends State<NearbyHospitalsScreen> {
       _userLocation = LatLng(position.latitude, position.longitude);
     });
 
-    // Add user's location marker (green)
     _markers.add(Marker(
       markerId: const MarkerId('user_location'),
       position: _userLocation!,
-      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
       infoWindow: const InfoWindow(title: 'Your Location'),
     ));
   }
@@ -81,7 +90,7 @@ class _NearbyHospitalsScreenState extends State<NearbyHospitalsScreen> {
           Marker(
             markerId: MarkerId(place['place_id']),
             position: LatLng(lat, lng),
-            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+            icon: _hospitalIcon!,
             infoWindow: InfoWindow(title: name),
           ),
         );
@@ -93,6 +102,39 @@ class _NearbyHospitalsScreenState extends State<NearbyHospitalsScreen> {
     }
 
     setState(() {});
+  }
+
+  Future<BitmapDescriptor> createCustomMarkerBitmap() async {
+    final ui.PictureRecorder recorder = ui.PictureRecorder();
+    final Canvas canvas = Canvas(recorder);
+    const double size = 70;
+
+    final Paint paint = Paint()..color = Colors.red;
+    canvas.drawCircle(const Offset(size / 2, size / 2), size / 2, paint);
+
+    final TextPainter textPainter = TextPainter(
+      text: const TextSpan(
+        text: '+',
+        style: TextStyle(
+          fontSize: 90,
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    );
+
+    textPainter.layout();
+    textPainter.paint(
+      canvas,
+      Offset((size - textPainter.width) / 2, (size - textPainter.height) / 2),
+    );
+
+    final ui.Image img = await recorder.endRecording().toImage(size.toInt(), size.toInt());
+    final ByteData? byteData = await img.toByteData(format: ui.ImageByteFormat.png);
+    final Uint8List bytes = byteData!.buffer.asUint8List();
+
+    return BitmapDescriptor.fromBytes(bytes);
   }
 
   @override

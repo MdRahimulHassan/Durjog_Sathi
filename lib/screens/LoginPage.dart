@@ -47,12 +47,45 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  Future<void> _resetPassword() async {
+    final email = _emailController.text.trim();
+
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter your email to reset password")),
+      );
+      return;
+    }
+
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      if (!mounted) return;
+
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text("Password Reset Email Sent"),
+          content: Text("Please check $email to reset your password."),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("OK"),
+            )
+          ],
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: ${e.toString()}")),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
-          // 🌄 Background
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
@@ -62,7 +95,6 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
 
-          // 🌫️ Glass Card
           Center(
             child: ClipRRect(
               borderRadius: BorderRadius.circular(25),
@@ -106,7 +138,6 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                           const SizedBox(height: 30),
 
-                          // 📧 Email
                           TextFormField(
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
@@ -116,7 +147,6 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                           const SizedBox(height: 20),
 
-                          // 🔐 Password
                           TextFormField(
                             controller: _passwordController,
                             obscureText: _isObscured,
@@ -133,9 +163,22 @@ class _LoginPageState extends State<LoginPage> {
                             validator: (value) =>
                             value == null || value.isEmpty ? 'Enter your password' : null,
                           ),
-                          const SizedBox(height: 30),
 
-                          // 🔘 Login Button
+                          const SizedBox(height: 10),
+
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: _resetPassword,
+                              child: const Text(
+                                "Forgot Password?",
+                                style: TextStyle(color: Colors.yellow),
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 10),
+
                           _isLoading
                               ? const CircularProgressIndicator(color: Colors.green)
                               : SizedBox(
@@ -158,7 +201,6 @@ class _LoginPageState extends State<LoginPage> {
 
                           const SizedBox(height: 15),
 
-                          // 🔁 Signup
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [

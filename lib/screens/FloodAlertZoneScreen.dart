@@ -32,7 +32,7 @@ class _FloodAlertZonesScreenState extends State<FloodAlertZonesScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Flood Alert Zones"),
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: Colors.white,
       ),
       body: Stack(
         children: [

@@ -1,8 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 
 class LiveRescueHeatmapScreen extends StatefulWidget {
@@ -17,154 +16,122 @@ class _LiveRescueHeatmapScreenState extends State<LiveRescueHeatmapScreen> {
   Set<Marker> _markers = {};
   List<LatLng> _polylineCoords = [];
   final PolylinePoints _polylinePoints = PolylinePoints();
-  final String _googleApiKey = 'AIzaSyCKhvSTYJrLl98jq-p8nB2pAae2gE2uuoY'; // Replace with your actual Google Maps API key
+  final String _googleApiKey = 'AIzaSyCKhvSTYJrLl98jq-p8nB2pAae2gE2uuoY';
 
-  StreamSubscription<DocumentSnapshot>? rescuerStream;
-  LatLng? rescuerLatLng;
-  LatLng? affectedLatLng;
+  LatLng? _currentLatLng;
+  final LatLng _destinationLatLng = LatLng(23.7772, 90.3995);
 
-  bool _loading = true;
+  StreamSubscription<Position>? _positionStream;
 
   @override
   void initState() {
     super.initState();
-    _initLiveTracking();
+    _startTracking();
   }
 
   @override
   void dispose() {
-    rescuerStream?.cancel();
+    _positionStream?.cancel();
     super.dispose();
   }
 
-  Future<void> _initLiveTracking() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-
-    // Fetch rescue request for this user where status = in_progress
-    final requestDoc = await FirebaseFirestore.instance
-        .collection('rescue_requests')
-        .doc(user.uid)
-        .get();
-
-    if (!requestDoc.exists) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("No active rescue request found.")),
-        );
-      }
-      setState(() => _loading = false);
+  Future<void> _startTracking() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      await Geolocator.openLocationSettings();
       return;
     }
 
-    final request = requestDoc.data();
-    if (request == null || request['status'] != 'in_progress') {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Rescue request not in progress.")),
-        );
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.deniedForever) return;
+
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission != LocationPermission.whileInUse && permission != LocationPermission.always) {
+        return;
       }
-      setState(() => _loading = false);
-      return;
     }
 
-    final rescuerId = request['rescuerId'];
-    if (rescuerId == null) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("No rescuer assigned yet.")),
-        );
-      }
-      setState(() => _loading = false);
-      return;
-    }
-
-    // Load affected person's location once
-    final affectedDoc = await FirebaseFirestore.instance
-        .collection('live_locations')
-        .doc(user.uid)
-        .get();
-
-    if (!affectedDoc.exists) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Your location not found.")),
-        );
-      }
-      setState(() => _loading = false);
-      return;
-    }
-
-    affectedLatLng = LatLng(
-      affectedDoc['latitude'],
-      affectedDoc['longitude'],
-    );
-
-    // Listen to rescuer location live updates
-    rescuerStream = FirebaseFirestore.instance
-        .collection('live_locations')
-        .doc(rescuerId)
-        .snapshots()
-        .listen((rescuerDoc) async {
-      if (!rescuerDoc.exists) return;
-
-      final rescuerPos = LatLng(
-        rescuerDoc['latitude'],
-        rescuerDoc['longitude'],
-      );
-
-      await _drawRoute(rescuerPos, affectedLatLng!);
-      setState(() => _loading = false);
+    _positionStream = Geolocator.getPositionStream(
+      locationSettings: const LocationSettings(distanceFilter: 10),
+    ).listen((Position position) {
+      final currentPos = LatLng(position.latitude, position.longitude);
+      _drawRoute(currentPos, _destinationLatLng);
     });
   }
 
-  Future<void> _drawRoute(LatLng rescuer, LatLng affected) async {
+  Future<void> _drawRoute(LatLng origin, LatLng destination) async {
     final result = await _polylinePoints.getRouteBetweenCoordinates(
       googleApiKey: _googleApiKey,
       request: PolylineRequest(
-        origin: PointLatLng(rescuer.latitude, rescuer.longitude),
-        destination: PointLatLng(affected.latitude, affected.longitude),
+        origin: PointLatLng(origin.latitude, origin.longitude),
+        destination: PointLatLng(destination.latitude, destination.longitude),
         mode: TravelMode.driving,
       ),
     );
 
-    final newRoute = result.points
-        .map((point) => LatLng(point.latitude, point.longitude))
-        .toList();
+    if (result.points.isEmpty) return;
 
-    final markers = {
+    final newRoute = result.points.map((point) => LatLng(point.latitude, point.longitude)).toList();
+
+    final markers = <Marker>{
       Marker(
-        markerId: const MarkerId("rescuer"),
-        position: rescuer,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-        infoWindow: const InfoWindow(title: "Rescuer"),
+        markerId: const MarkerId("origin"),
+        position: origin,
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+        infoWindow: const InfoWindow(title: "Your Location"),
       ),
       Marker(
-        markerId: const MarkerId("affected"),
-        position: affected,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-        infoWindow: const InfoWindow(title: "You"),
+        markerId: const MarkerId("destination"),
+        position: destination,
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+        infoWindow: const InfoWindow(title: "Target Location"),
       ),
     };
 
+    // Add 10 nearby "rescuer" markers around Dhaka
+    final List<LatLng> rescuerLocations = [
+      LatLng(23.7801, 90.4005),
+      LatLng(23.7792, 90.3983),
+      LatLng(23.7785, 90.4021),
+      LatLng(23.7777, 90.3970),
+      LatLng(23.7769, 90.4010),
+      LatLng(23.7758, 90.4001),
+      LatLng(23.7799, 90.3967),
+      LatLng(23.7810, 90.3999),
+      LatLng(23.7780, 90.4032),
+      LatLng(23.7770, 90.3955),
+    ];
+
+    for (int i = 0; i < rescuerLocations.length; i++) {
+      markers.add(
+        Marker(
+          markerId: MarkerId("rescuer_$i"),
+          position: rescuerLocations[i],
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+          infoWindow: InfoWindow(title: "Rescuer ${i + 1}"),
+        ),
+      );
+    }
+
     setState(() {
-      rescuerLatLng = rescuer;
+      _currentLatLng = origin;
       _markers = markers;
       _polylineCoords = newRoute;
     });
 
-    _moveCamera(rescuer, affected);
+    _moveCamera(origin, destination);
   }
 
-  void _moveCamera(LatLng rescuer, LatLng affected) {
+  void _moveCamera(LatLng origin, LatLng destination) {
     final bounds = LatLngBounds(
       southwest: LatLng(
-        rescuer.latitude < affected.latitude ? rescuer.latitude : affected.latitude,
-        rescuer.longitude < affected.longitude ? rescuer.longitude : affected.longitude,
+        origin.latitude < destination.latitude ? origin.latitude : destination.latitude,
+        origin.longitude < destination.longitude ? origin.longitude : destination.longitude,
       ),
       northeast: LatLng(
-        rescuer.latitude > affected.latitude ? rescuer.latitude : affected.latitude,
-        rescuer.longitude > affected.longitude ? rescuer.longitude : affected.longitude,
+        origin.latitude > destination.latitude ? origin.latitude : destination.latitude,
+        origin.longitude > destination.longitude ? origin.longitude : destination.longitude,
       ),
     );
 
@@ -174,13 +141,11 @@ class _LiveRescueHeatmapScreenState extends State<LiveRescueHeatmapScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Live Rescue Tracker")),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : GoogleMap(
+      appBar: AppBar(title: const Text("Live Navigation to Target")),
+      body: GoogleMap(
         onMapCreated: (controller) => _mapController = controller,
         initialCameraPosition: CameraPosition(
-          target: affectedLatLng ?? const LatLng(23.777176, 90.399452), // Dhaka default
+          target: _currentLatLng ?? const LatLng(23.777176, 90.399452),
           zoom: 13,
         ),
         markers: _markers,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'SelectAffectedPerson.dart'; // Import the target screen
+import 'SelectAffectedPerson.dart';
+import 'UserRolesScreen.dart';
 
 class RescuersScreen extends StatelessWidget {
   const RescuersScreen({super.key});
@@ -10,6 +11,15 @@ class RescuersScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text("Rescuers Dashboard"),
         backgroundColor: Colors.blueAccent,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const UserRolesScreen()),
+            );
+          },
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -29,7 +39,7 @@ class RescuersScreen extends StatelessWidget {
                 );
               },
             ),
-            // Add more cards here if needed
+            // You can add more cards here if needed
           ],
         ),
       ),

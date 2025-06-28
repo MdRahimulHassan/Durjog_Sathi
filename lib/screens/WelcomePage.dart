@@ -43,8 +43,7 @@ class _WelcomePageState extends State<WelcomePage> {
               ),
             ),
           ),
-
-          // 🌫️ Glassmorphic Card
+          
           Center(
             child: ClipRRect(
               borderRadius: BorderRadius.circular(20),

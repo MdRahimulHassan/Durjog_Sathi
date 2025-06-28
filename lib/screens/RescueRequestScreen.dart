@@ -20,7 +20,7 @@ class _RescueRequestScreenState extends State<RescueRequestScreen> {
   Set<Marker> _rescueMarkers = {};
   List<LatLng> _polylineCoordinates = [];
   final PolylinePoints _polylinePoints = PolylinePoints();
-  final String _googleApiKey = 'AIzaSyCKhvSTYJrLl98jq-p8nB2pAae2gE2uuoY'; // Replace with your real key
+  final String _googleApiKey = 'AIzaSyCKhvSTYJrLl98jq-p8nB2pAae2gE2uuoY';
 
   @override
   void initState() {

@@ -45,6 +45,7 @@ class _SelectAffectedPersonState extends State<SelectAffectedPerson> {
     if (status.isGranted) {
       await _getCurrentLocation();
       await _loadAffectedPersons();
+      await _loadAllRescuers();
       _startLocationTracking();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -135,6 +136,31 @@ class _SelectAffectedPersonState extends State<SelectAffectedPerson> {
         'longitude': data['longitude'],
         'timestamp': FieldValue.serverTimestamp(),
       });
+    }
+
+    setState(() {});
+  }
+
+  Future<void> _loadAllRescuers() async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final snapshot = await FirebaseFirestore.instance.collection('rescuers').get();
+
+    for (var doc in snapshot.docs) {
+      final data = doc.data();
+      final id = doc.id;
+
+      // Skip current rescuer
+      if (currentUser != null && id == currentUser.uid) continue;
+
+      if (data.containsKey('latitude') && data.containsKey('longitude')) {
+        final marker = Marker(
+          markerId: MarkerId("rescuer_$id"),
+          position: LatLng(data['latitude'], data['longitude']),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+          infoWindow: const InfoWindow(title: "Other Rescuer"),
+        );
+        _markers.add(marker);
+      }
     }
 
     setState(() {});

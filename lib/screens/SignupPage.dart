@@ -214,8 +214,7 @@ class _SignupPageState extends State<SignupPage> {
                           GestureDetector(
                             onTap: _signUpWithGoogle,
                             child: Container(
-                              padding:
-                              const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(12),
@@ -262,6 +261,7 @@ class _SignupPageState extends State<SignupPage> {
     );
   }
 
+  // ✅ Enhanced validation logic added here
   Widget _buildTextField(
       TextEditingController controller,
       String label,
@@ -273,10 +273,41 @@ class _SignupPageState extends State<SignupPage> {
     return TextFormField(
       controller: controller,
       obscureText: isPassword ? isObscured : false,
-      keyboardType:
-      label == "Phone Number" ? TextInputType.phone : TextInputType.text,
-      validator: (value) =>
-      value == null || value.isEmpty ? "Enter $label" : null,
+      keyboardType: label == "Phone Number" ? TextInputType.phone : TextInputType.text,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return "Enter $label";
+        }
+
+
+        if (label == "Password") {
+          String password = value;
+          String _errorMessage = '';
+
+          if (password.length < 6) {
+            _errorMessage += '• Must be at least 6 characters.\n';
+          }
+
+          if (!password.contains(RegExp(r'[A-Z]'))) {
+            _errorMessage += '• Uppercase letter is missing.\n';
+          }
+          if (!password.contains(RegExp(r'[a-z]'))) {
+            _errorMessage += '• Lowercase letter is missing.\n';
+          }
+          if (!password.contains(RegExp(r'[0-9]'))) {
+            _errorMessage += '• Digit is missing.\n';
+          }
+          if (!password.contains(RegExp(r'[!@#%^&*(),.?":{}|<>]'))) {
+            _errorMessage += '• Special character is missing.\n';
+          }
+
+          if (_errorMessage.isNotEmpty) {
+            return _errorMessage.trim();
+          }
+        }
+
+        return null;
+      },
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon, color: Colors.white70),
@@ -285,14 +316,12 @@ class _SignupPageState extends State<SignupPage> {
         fillColor: Colors.white.withOpacity(0.15),
         suffixIcon: isPassword
             ? IconButton(
-          icon: Icon(
-              isObscured ? Icons.visibility_off : Icons.visibility),
+          icon: Icon(isObscured ? Icons.visibility_off : Icons.visibility),
           color: Colors.white70,
           onPressed: toggleVisibility,
         )
             : null,
-        contentPadding:
-        const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
           borderSide: const BorderSide(color: Colors.white24),
