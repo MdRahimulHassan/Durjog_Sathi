@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 import 'RescueRequestScreen.dart';
 import 'MapAndRescueTrackerScreen.dart';
@@ -8,7 +9,6 @@ import 'EmergencyMedicalScreen.dart';
 import 'OfflineCommunicationScreen.dart';
 import 'LoginPage.dart';
 import 'UserRolesScreen.dart';
-import 'Statistics.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -76,20 +76,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     "Medical supplies running low at local clinics. Donate if possible.",
   ];
 
-  void _onTabTapped(int index) async {
-    if (index == 1) {
-      await Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const StatisticsScreen()),
-      );
-    } else {
-      setState(() {
-        _selectedIndex = index;
-        _showFooter = false;
-      });
-      _animationController.reset();
-      _animationController.forward();
-    }
+  void _onTabTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+      _showFooter = false;
+    });
+    _animationController.reset();
+    _animationController.forward();
   }
 
   List<Widget> _buildSafetySlides(double screenHeight) {
@@ -385,6 +378,457 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
+  Widget _statisticsContent() {
+    // Professional emergency management statistics
+    final totalIncidents = 247;
+    final activeIncidents = 18;
+    final resolvedIncidents = 229;
+    final totalPersonnel = 156;
+    final deployedPersonnel = 42;
+    final availablePersonnel = 114;
+    final responseTime = 8.5; // minutes average
+    final successRate = 94.7; // percentage
+
+    // Weekly incident data (last 7 days)
+    final incidentData = [
+      {'day': 'Mon', 'reported': 35, 'resolved': 32, 'ongoing': 3},
+      {'day': 'Tue', 'reported': 28, 'resolved': 26, 'ongoing': 2},
+      {'day': 'Wed', 'reported': 42, 'resolved': 38, 'ongoing': 4},
+      {'day': 'Thu', 'reported': 31, 'resolved': 29, 'ongoing': 2},
+      {'day': 'Fri', 'reported': 39, 'resolved': 35, 'ongoing': 4},
+      {'day': 'Sat', 'reported': 45, 'resolved': 41, 'ongoing': 4},
+      {'day': 'Sun', 'reported': 33, 'resolved': 30, 'ongoing': 3},
+    ];
+
+    // Response type distribution
+    final responseTypes = [
+      PieChartSectionData(
+        color: const Color(0xFF0293EE),
+        value: 35,
+        title: 'Medical\n35%',
+        radius: 60,
+        titleStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+      ),
+      PieChartSectionData(
+        color: const Color(0xFFF8B250),
+        value: 28,
+        title: 'Fire\n28%',
+        radius: 60,
+        titleStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+      ),
+      PieChartSectionData(
+        color: const Color(0xFF845EC2),
+        value: 22,
+        title: 'Rescue\n22%',
+        radius: 60,
+        titleStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+      ),
+      PieChartSectionData(
+        color: const Color(0xFF4E9F3D),
+        value: 15,
+        title: 'Other\n15%',
+        radius: 60,
+        titleStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+      ),
+    ];
+
+    return Container(
+      color: const Color(0xFFF5F7FA),
+      child: Column(
+        children: [
+          // Top App Bar
+          Container(
+            padding: EdgeInsets.fromLTRB(16, MediaQuery.of(context).padding.top + 16, 16, 16),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF1E3A8A), Color(0xFF3B82F6)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.analytics_outlined,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Statistics Dashboard',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        'Real-time emergency data analysis',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Quick stats in app bar
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: Colors.green,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '$activeIncidents Active',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Scrollable content below app bar
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 100), // Added bottom padding for floating nav
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Quick Stats Cards Row
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildStatCard(
+                          'Total Incidents',
+                          totalIncidents.toString(),
+                          Icons.report_problem_outlined,
+                          const Color(0xFF3B82F6),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildStatCard(
+                          'Success Rate',
+                          '${successRate.toStringAsFixed(1)}%',
+                          Icons.check_circle_outline,
+                          const Color(0xFF10B981),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildStatCard(
+                          'Avg Response',
+                          '${responseTime.toStringAsFixed(1)} min',
+                          Icons.timer_outlined,
+                          const Color(0xFFF59E0B),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildStatCard(
+                          'Personnel',
+                          '$deployedPersonnel/$totalPersonnel',
+                          Icons.people_outline,
+                          const Color(0xFF8B5CF6),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Charts Section
+                  const Text(
+                    'Weekly Incident Analysis',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1F2937)),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Incident Reports vs Resolution Rate',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Success Rate: ${successRate.toStringAsFixed(1)}%',
+                          style: const TextStyle(fontSize: 14, color: Colors.grey),
+                        ),
+                        const SizedBox(height: 20),
+                        AspectRatio(
+                          aspectRatio: 1.6,
+                          child: BarChart(
+                            BarChartData(
+                              maxY: 50,
+                              backgroundColor: Colors.transparent,
+                              titlesData: FlTitlesData(
+                                bottomTitles: AxisTitles(
+                                  sideTitles: SideTitles(
+                                    showTitles: true,
+                                    getTitlesWidget: (value, meta) {
+                                      if (value < 0 || value >= incidentData.length) return const Text('');
+                                      return Padding(
+                                        padding: const EdgeInsets.only(top: 8),
+                                        child: Text(
+                                          incidentData[value.toInt()]['day'] as String,
+                                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                                leftTitles: AxisTitles(
+                                  sideTitles: SideTitles(
+                                    showTitles: true,
+                                    interval: 10,
+                                    getTitlesWidget: (value, _) => Text(
+                                      '${value.toInt()}',
+                                      style: const TextStyle(fontSize: 11, color: Colors.grey),
+                                    ),
+                                  ),
+                                ),
+                                rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                              ),
+                              gridData: FlGridData(
+                                show: true,
+                                drawHorizontalLine: true,
+                                drawVerticalLine: false,
+                                horizontalInterval: 10,
+                                getDrawingHorizontalLine: (value) => FlLine(
+                                  color: Colors.grey.withOpacity(0.2),
+                                  strokeWidth: 1,
+                                ),
+                              ),
+                              borderData: FlBorderData(show: false),
+                              barGroups: List.generate(incidentData.length, (index) {
+                                final data = incidentData[index];
+                                return BarChartGroupData(
+                                  x: index,
+                                  barRods: [
+                                    BarChartRodData(
+                                      toY: (data['reported'] as int).toDouble(),
+                                      width: 8,
+                                      color: const Color(0xFF3B82F6),
+                                      borderRadius: const BorderRadius.only(
+                                        topLeft: Radius.circular(4),
+                                        topRight: Radius.circular(4),
+                                      ),
+                                    ),
+                                    BarChartRodData(
+                                      toY: (data['resolved'] as int).toDouble(),
+                                      width: 8,
+                                      color: const Color(0xFF10B981),
+                                      borderRadius: const BorderRadius.only(
+                                        topLeft: Radius.circular(4),
+                                        topRight: Radius.circular(4),
+                                      ),
+                                    ),
+                                  ],
+                                  barsSpace: 3,
+                                );
+                              }),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            _buildLegendItem('Reported', const Color(0xFF3B82F6)),
+                            const SizedBox(width: 24),
+                            _buildLegendItem('Resolved', const Color(0xFF10B981)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Incident Type Distribution
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Incident Type Distribution',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Current month breakdown',
+                          style: TextStyle(fontSize: 14, color: Colors.grey),
+                        ),
+                        const SizedBox(height: 20),
+                        AspectRatio(
+                          aspectRatio: 1.3,
+                          child: PieChart(
+                            PieChartData(
+                              sections: responseTypes,
+                              centerSpaceRadius: 40,
+                              sectionsSpace: 2,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+// Helper method for stat cards
+  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  icon,
+                  color: color,
+                  size: 20,
+                ),
+              ),
+              const Spacer(),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1F2937),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 12,
+              color: Color(0xFF6B7280),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+// Helper method for legend items
+  Widget _buildLegendItem(String label, Color color) {
+    return Row(
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+        ),
+      ],
+    );
+  }
+
   Widget _notificationsContent() => Container(
     color: const Color(0xFFF8FAFC),
     child: const Center(
@@ -540,78 +984,97 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final bool isSelected = _selectedIndex == index;
 
     return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-        padding: EdgeInsets.symmetric(
-          horizontal: isSelected ? 16 : 12,
-          vertical: 8,
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          padding: EdgeInsets.symmetric(
+            horizontal: isSelected ? 16 : 12,
+            vertical: 8,
+          ),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? const Color(0xFF1565C0).withOpacity(0.1)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+          AnimatedSwitcher(
+          duration: const Duration(milliseconds: 200),
+          child: Icon(
+            isSelected ? activeIcon : icon,
+            key: ValueKey(isSelected),
+            color: isSelected
+                ? const Color(0xFF1565C0)
+                : const Color(0xFF718096),
+            size: 24,
+          ),
         ),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? const Color(0xFF1565C0).withOpacity(0.1)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
+        const SizedBox(height: 4),
+        AnimatedDefaultTextStyle(
+        duration: const Duration(milliseconds: 200),
+    style: TextStyle(
+    fontSize: 12,
+    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+      color: isSelected
+          ? const Color(0xFF1565C0)
+          : const Color(0xFF9CA3AF),
+    ),
+          child: Text(
+            label,
+            key: ValueKey(isSelected),
+          ),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 200),
-              child: Icon(
-                isSelected ? activeIcon : icon,
-                key: ValueKey(isSelected),
-                color: isSelected
-                    ? const Color(0xFF1565C0)
-                    : const Color(0xFF718096),
-                size: 24,
-              ),
-            ),
-            const SizedBox(height: 4),
-            AnimatedDefaultTextStyle(
-              duration: const Duration(milliseconds: 200),
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected
-                    ? const Color(0xFF1565C0)
-                    : const Color(0xFF718096),
-              ),
-              child: Text(label),
-            ),
-          ],
+              ],
+          ),
         ),
-      ),
     );
   }
 
-  Widget _buildFloatingNavigationBar() {
-    return AnimatedBuilder(
-      animation: _fadeAnimation,
-      builder: (context, child) {
-        return FadeTransition(
-          opacity: _fadeAnimation,
-          child: ScaleTransition(
-            scale: _scaleAnimation,
+  @override
+  Widget build(BuildContext context) {
+    final List<Widget> pages = [
+      _homeContent(context),
+      _statisticsContent(),
+      _notificationsContent(),
+      _profileContent(),
+    ];
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
+      body: Stack(
+        children: [
+          // Main content
+          AnimatedBuilder(
+            animation: _fadeAnimation,
+            builder: (context, child) {
+              return FadeTransition(
+                opacity: _fadeAnimation,
+                child: ScaleTransition(
+                  scale: _scaleAnimation,
+                  child: pages[_selectedIndex],
+                ),
+              );
+            },
+          ),
+
+          // Floating Navigation Bar
+          Positioned(
+            left: 20,
+            right: 20,
+            bottom: 20,
             child: Container(
-              margin: const EdgeInsets.all(20),
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+              height: 70,
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(30),
+                borderRadius: BorderRadius.circular(35),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.1),
                     blurRadius: 20,
                     offset: const Offset(0, 10),
-                    spreadRadius: 0,
-                  ),
-                  BoxShadow(
-                    color: const Color(0xFF1565C0).withOpacity(0.1),
-                    blurRadius: 40,
-                    offset: const Offset(0, 20),
-                    spreadRadius: 0,
                   ),
                 ],
               ),
@@ -635,7 +1098,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   _buildFloatingNavItem(
                     icon: Icons.notifications_outlined,
                     activeIcon: Icons.notifications,
-                    label: 'Notifications',
+                    label: 'Alerts',
                     index: 2,
                     onTap: () => _onTabTapped(2),
                   ),
@@ -649,71 +1112,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 ],
               ),
             ),
-          ),
-        );
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    Widget bodyContent;
-    switch (_selectedIndex) {
-      case 2:
-        bodyContent = _notificationsContent();
-        break;
-      case 3:
-        bodyContent = _profileContent();
-        break;
-      case 0:
-      default:
-        bodyContent = _homeContent(context);
-    }
-
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        automaticallyImplyLeading: false,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF2D3748)),
-          onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const UserRolesScreen()),
-            );
-          },
-        ),
-        title: const Text(
-          'Dujog Bondhu',
-          style: TextStyle(
-            color: Color(0xFF1A202C),
-            fontSize: 22,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -0.5,
-          ),
-        ),
-        centerTitle: true,
-        elevation: 0,
-        surfaceTintColor: Colors.white,
-        shadowColor: Colors.black.withOpacity(0.1),
-      ),
-      drawer: Drawer(
-        child: _profileContent(),
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-            topRight: Radius.circular(16),
-            bottomRight: Radius.circular(16),
-          ),
-        ),
-      ),
-      body: Stack(
-        children: [
-          bodyContent,
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: _buildFloatingNavigationBar(),
           ),
         ],
       ),
@@ -737,59 +1135,52 @@ class FeatureCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.2),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        child: InkWell(
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => target),
-          ),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => target),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    icon,
-                    size: 32,
-                    color: color,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  label,
-                  maxLines: 2,
-                  textAlign: TextAlign.center,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF2D3748),
-                    height: 1.3,
-                  ),
-                ),
-              ],
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
             ),
-          ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(
+                icon,
+                color: color,
+                size: 32,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF2D3748),
+              ),
+            ),
+          ],
         ),
       ),
     );
