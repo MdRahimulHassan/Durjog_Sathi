@@ -17,9 +17,34 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   int _selectedIndex = 0;
   bool _showFooter = false;
+  late AnimationController _animationController;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.elasticOut),
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   final List<Map<String, String>> safetyMessages = const [
     {
@@ -62,6 +87,8 @@ class _HomeScreenState extends State<HomeScreen> {
         _selectedIndex = index;
         _showFooter = false;
       });
+      _animationController.reset();
+      _animationController.forward();
     }
   }
 
@@ -164,7 +191,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Container(
         color: const Color(0xFFF8FAFC),
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 100), // Added bottom padding for floating nav
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -228,7 +255,7 @@ class _HomeScreenState extends State<HomeScreen> {
               // Safety Messages Carousel
               CarouselSlider(
                 options: CarouselOptions(
-                  height: screenHeight * 0.14, // Increased from 0.12
+                  height: screenHeight * 0.14,
                   autoPlay: true,
                   autoPlayInterval: const Duration(seconds: 4),
                   autoPlayAnimationDuration: const Duration(milliseconds: 800),
@@ -477,6 +504,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
+          const SizedBox(height: 100), // Added padding for floating nav
         ],
       ),
     );
@@ -499,6 +527,131 @@ class _HomeScreenState extends State<HomeScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       ),
+    );
+  }
+
+  Widget _buildFloatingNavItem({
+    required IconData icon,
+    required IconData activeIcon,
+    required String label,
+    required int index,
+    required VoidCallback onTap,
+  }) {
+    final bool isSelected = _selectedIndex == index;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        padding: EdgeInsets.symmetric(
+          horizontal: isSelected ? 16 : 12,
+          vertical: 8,
+        ),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? const Color(0xFF1565C0).withOpacity(0.1)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              child: Icon(
+                isSelected ? activeIcon : icon,
+                key: ValueKey(isSelected),
+                color: isSelected
+                    ? const Color(0xFF1565C0)
+                    : const Color(0xFF718096),
+                size: 24,
+              ),
+            ),
+            const SizedBox(height: 4),
+            AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 200),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                color: isSelected
+                    ? const Color(0xFF1565C0)
+                    : const Color(0xFF718096),
+              ),
+              child: Text(label),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFloatingNavigationBar() {
+    return AnimatedBuilder(
+      animation: _fadeAnimation,
+      builder: (context, child) {
+        return FadeTransition(
+          opacity: _fadeAnimation,
+          child: ScaleTransition(
+            scale: _scaleAnimation,
+            child: Container(
+              margin: const EdgeInsets.all(20),
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(30),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                    spreadRadius: 0,
+                  ),
+                  BoxShadow(
+                    color: const Color(0xFF1565C0).withOpacity(0.1),
+                    blurRadius: 40,
+                    offset: const Offset(0, 20),
+                    spreadRadius: 0,
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildFloatingNavItem(
+                    icon: Icons.home_outlined,
+                    activeIcon: Icons.home,
+                    label: 'Home',
+                    index: 0,
+                    onTap: () => _onTabTapped(0),
+                  ),
+                  _buildFloatingNavItem(
+                    icon: Icons.bar_chart_outlined,
+                    activeIcon: Icons.bar_chart,
+                    label: 'Statistics',
+                    index: 1,
+                    onTap: () => _onTabTapped(1),
+                  ),
+                  _buildFloatingNavItem(
+                    icon: Icons.notifications_outlined,
+                    activeIcon: Icons.notifications,
+                    label: 'Notifications',
+                    index: 2,
+                    onTap: () => _onTabTapped(2),
+                  ),
+                  _buildFloatingNavItem(
+                    icon: Icons.person_outline,
+                    activeIcon: Icons.person,
+                    label: 'Profile',
+                    index: 3,
+                    onTap: () => _onTabTapped(3),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -553,57 +706,16 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
-      body: bodyContent,
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          backgroundColor: Colors.white,
-          currentIndex: _selectedIndex,
-          selectedItemColor: const Color(0xFF1565C0),
-          unselectedItemColor: const Color(0xFF718096),
-          onTap: _onTabTapped,
-          type: BottomNavigationBarType.fixed,
-          elevation: 0,
-          selectedLabelStyle: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
+      body: Stack(
+        children: [
+          bodyContent,
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: _buildFloatingNavigationBar(),
           ),
-          unselectedLabelStyle: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-          ),
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.bar_chart_outlined),
-              activeIcon: Icon(Icons.bar_chart),
-              label: 'Statistics',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.notifications_outlined),
-              activeIcon: Icon(Icons.notifications),
-              label: 'Notifications',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              activeIcon: Icon(Icons.person),
-              label: 'Profile',
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }

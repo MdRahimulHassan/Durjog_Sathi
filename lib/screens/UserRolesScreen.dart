@@ -39,26 +39,26 @@ class _UserRolesScreenState extends State<UserRolesScreen>
       "hasBlinking": true,
     },
     {
-      "name": "Medical Staff",
+      "name": "Medical\nResponse Unit",
       "tagline": "Healthcare Heroes",
-      "description": "Provide medical assistance",
+      "description": "Medical assistance",
       "icon": Icons.local_hospital_outlined,
       "color": Color(0xFF27AE60),
       "lightColor": Color(0xFFE8F5E8),
       "emoji": "⚕️",
       "status": "READY",
-      "hasBlinking": false,
+      "hasBlinking": true,
     },
     {
-      "name": "Volunteers",
+      "name": "Military\nAssistance",
       "tagline": "Community Support",
-      "description": "Join mission to help others",
+      "description": "Military assistance",
       "icon": Icons.volunteer_activism_outlined,
       "color": Color(0xFF9B59B6),
       "lightColor": Color(0xFFF3E5F5),
       "emoji": "🤝",
       "status": "OPEN",
-      "hasBlinking": false,
+      "hasBlinking": true,
     },
   ];
 
@@ -316,7 +316,8 @@ class _ProfessionalRoleCardState extends State<ProfessionalRoleCard>
           return Transform.scale(
             scale: _pressAnimation.value,
             child: Container(
-              height: 142, // Fixed height to prevent overflow
+              height: (widget.role['name'] == "Medical\nResponse Unit" ||
+                  widget.role['name'] == "Military\nAssistance") ? 157 : 142, // Increased height for last two cards
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
@@ -340,7 +341,10 @@ class _ProfessionalRoleCardState extends State<ProfessionalRoleCard>
                 ),
               ),
               child: Padding(
-                padding: const EdgeInsets.all(20),
+                padding: (widget.role['name'] == "Medical\nResponse Unit" ||
+                    widget.role['name'] == "Military\nAssistance")
+                    ? const EdgeInsets.all(12)
+                    : const EdgeInsets.all(20),
                 child: Row(
                   children: [
                     // Icon Container
@@ -425,7 +429,7 @@ class _ProfessionalRoleCardState extends State<ProfessionalRoleCard>
                             ],
                           ),
 
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 4),
 
                           // Role Name
                           Text(
@@ -434,12 +438,13 @@ class _ProfessionalRoleCardState extends State<ProfessionalRoleCard>
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
                               color: Color(0xFF2C3E50),
+                              height: 1.1,
                             ),
-                            maxLines: 1,
+                            maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
 
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 2),
 
                           // Description
                           Text(
