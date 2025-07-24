@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-
 import 'RescueRequestScreen.dart';
 import 'MapAndRescueTrackerScreen.dart';
 import 'EmergencyMedicalScreen.dart';
@@ -9,7 +8,6 @@ import 'OfflineCommunicationScreen.dart';
 import 'LoginPage.dart';
 import 'UserRolesScreen.dart';
 import 'Statistics.dart';
-
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -255,7 +253,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               // Safety Messages Carousel
               CarouselSlider(
                 options: CarouselOptions(
-                  height: screenHeight * 0.14,
+                  height: screenHeight * 0.15,
                   autoPlay: true,
                   autoPlayInterval: const Duration(seconds: 4),
                   autoPlayAnimationDuration: const Duration(milliseconds: 800),
@@ -370,7 +368,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   ),
                   child: const Center(
                     child: Text(
-                      '© 2025 Dujog Bondhu - All rights reserved',
+                      '© 2025 Dujog Sathi - All rights reserved',
                       style: TextStyle(
                         color: Color(0xFF718096),
                         fontSize: 12,
@@ -436,13 +434,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             child: const Column(
               children: [
                 CircleAvatar(
-                  backgroundImage: AssetImage("assets/images/Rahimul.jpg"),
+                  backgroundImage: AssetImage("assets/images/Tajree.jpg"),
                   radius: 40,
                   backgroundColor: Colors.white,
                 ),
                 SizedBox(height: 16),
                 Text(
-                  "Rahimul",
+                  "Tajree",
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w600,
@@ -451,7 +449,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 ),
                 SizedBox(height: 4),
                 Text(
-                  "2021831050@student.sust.edu",
+                  "jannatultajree02@gmail.com",
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.white70,
@@ -684,7 +682,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           },
         ),
         title: const Text(
-          'Dujog Bondhu',
+          'Durjog Sathi',
           style: TextStyle(
             color: Color(0xFF1A202C),
             fontSize: 22,
