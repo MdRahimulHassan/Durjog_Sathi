@@ -47,23 +47,23 @@ This is a student project. The core rescue flow works end to end, while several 
 | Area | Feature | Status |
 |---|---|---|
 | **Accounts** | Sign up and log in with email and password, Google sign-in, password reset, session kept between launches | Working |
-| | Role selection: **Affected Persons** and **Rescuers** | Working |
-| | Role portals for **Medical Response Unit** and **Military Assistance** | Planned |
+| **Accounts** | Role selection: **Affected Persons** and **Rescuers** | Working |
+| **Accounts** | Role portals for **Medical Response Unit** and **Military Assistance** | Planned |
 | **Affected person** | **Emergency SOS:** share your GPS location as a rescue request, see it on the map, delete it | Working |
-| | **Nearby hospitals** within 20 km (Google Places) | Working |
-| | **Flood alert zones** (Bangladesh Flood Forecasting and Warning Centre, shown in an in-app web view) | Working |
-| | **Weather forecast** (in-app web view) | Working |
-| | **First aid tips** for earthquakes, floods, fires and storms, available without internet | Working |
-| | **Offline communication:** one-tap call to 999 | Working |
-| | Offline communication: SMS your location, Wi-Fi and Bluetooth mesh messaging | Planned |
-| | **Shelter locations:** tap the map to add a shelter with its capacity and free space | Prototype (kept in memory, not saved) |
-| | **Emergency contacts:** default list, add your own | Prototype (kept in memory, not saved) |
-| | **Live rescue heatmap** and rescue tracking with route drawing | Prototype (fixed demo destination and sample rescuer markers around Dhaka) |
-| | **Statistics** charts | Prototype (sample data) |
-| | Home alerts, notifications, profile card | Prototype (placeholder content) |
-| | Other medical info (symptoms, medications, blood donation, injury types, resources) | Planned |
+| **Affected person** | **Nearby hospitals** within 20 km (Google Places) | Working |
+| **Affected person** | **Flood alert zones** (Bangladesh Flood Forecasting and Warning Centre, shown in an in-app web view) | Working |
+| **Affected person** | **Weather forecast** (in-app web view) | Working |
+| **Affected person** | **First aid tips** for earthquakes, floods, fires and storms, available without internet | Working |
+| **Affected person** | **Offline communication:** one-tap call to 999 | Working |
+| **Affected person** | Offline communication: SMS your location, Wi-Fi and Bluetooth mesh messaging | Planned |
+| **Affected person** | **Shelter locations:** tap the map to add a shelter with its capacity and free space | Prototype (kept in memory, not saved) |
+| **Affected person** | **Emergency contacts:** default list, add your own | Prototype (kept in memory, not saved) |
+| **Affected person** | **Live rescue heatmap** and rescue tracking with route drawing | Prototype (fixed demo destination and sample rescuer markers around Dhaka) |
+| **Affected person** | **Statistics** charts | Prototype (sample data) |
+| **Affected person** | Home alerts, notifications, profile card | Prototype (placeholder content) |
+| **Affected person** | Other medical info (symptoms, medications, blood donation, injury types, resources) | Planned |
 | **Rescuer** | See people who sent an SOS on a map, select one, and **start a rescue** (route drawn with Google Directions) | Working |
-| | Urgent alerts, status reporting, messaging, team coordination, rescue history | Planned |
+| **Rescuer** | Urgent alerts, status reporting, messaging, team coordination, rescue history | Planned |
 
 ## How it works
 
